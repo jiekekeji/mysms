@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">短信</string>
+    <string name="action_search">搜索</string>
+    <string name="action_settings">设置</string>
+    <string name="search_hint">请输入搜索内容</string>
+
+
+</resources>
