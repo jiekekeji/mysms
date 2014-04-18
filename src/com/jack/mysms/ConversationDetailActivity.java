@@ -1,8 +1,13 @@
 package com.jack.mysms;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -13,10 +18,14 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +41,7 @@ import com.jack.mssms.utils.MyAsyncQuery.OnQueryNotifyCompleteListener;
 import com.jack.mssms.utils.Sms;
 import com.jack.mssms.utils.Utils;
 
-public class ConversationDetailActivity extends Activity implements OnQueryNotifyCompleteListener,OnClickListener{
+public class ConversationDetailActivity extends Activity implements OnQueryNotifyCompleteListener,OnClickListener, OnLongClickListener, OnItemLongClickListener{
 
 	private static final String TAG = "ConversationDetailActivity";
 	private int thread_id;
@@ -51,12 +60,24 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 	private final int DATE_COLUMN_INDEX = 2;
 	private final int TYPE_COLUMN_INDEX = 3;
 	private ListView mListView;
-	private Button btnVoice;
+	private ImageButton btnVoice;
 	private Button btnSend;
 	private EditText eTextContent;
 	
 	//语音识别对话框
 	private RecognizerDialog recognizerDialog;
+	
+	/**
+	 * 设置item项的子控件能够获得焦点（默认为false，即默认item项的子空间是不能获得焦点的）
+		mListView.setItemsCanFocus(true);
+		
+	 * listView的item中的textView是否被长按listView的item中的textView是否被长按
+	 * 当item.setonItemLongClick  item中的控件textView也设置了 setOnLongClick
+	 * 
+	 * 执行顺序：先执行 item中的控件textView也设置了 setOnLongClick
+	 * 在执行  item的 item.setonItemLongClick。
+	 */
+	private boolean tvIsonLongClick=false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +96,7 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		
 		initRecognizerDialog();
 	}
+	
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -165,7 +187,7 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 	 * 初始化view
 	 */
 	private void initView() {
-		btnVoice = (Button) findViewById(R.id.btn_conversation_detail_voice);
+		btnVoice = (ImageButton) findViewById(R.id.btn_conversation_detail_voice);
 		btnSend = (Button) findViewById(R.id.btn_conversation_detail_send);
 		eTextContent = (EditText) findViewById(R.id.et_conversation_detail_content);
 		
@@ -177,6 +199,9 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		mAdapter = new ConversationDetailAdapter(this, null);
 		
 		mListView.setAdapter(mAdapter);
+		//设置item项的子控件能够获得焦点（默认为false，即默认item项的子空间是不能获得焦点的）
+		mListView.setItemsCanFocus(true);
+		mListView.setOnItemLongClickListener(this);
 	}
 	
 	/**
@@ -206,8 +231,6 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		ActionBar actionBar = getActionBar();
 		//返回箭头
 		actionBar.setDisplayHomeAsUpEnabled(true);
-		
-		actionBar.setDisplayShowHomeEnabled(false);
 			
         String contactName = Utils.getContactName(getContentResolver(), address);
 		
@@ -232,11 +255,13 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 			mHolder = new ConversationDetailHolderView();
 			View view = View.inflate(context, R.layout.item_conversation_detail, null);
 			mHolder.receiveView = view.findViewById(R.id.tl_conversation_detail_item_receive);
-			mHolder.tvReceiveBody = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_body);		
+			mHolder.tvReceiveBody = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_body);
+			mHolder.tvReceiveBody.setOnLongClickListener(ConversationDetailActivity.this);
 			mHolder.tvReceiveDate = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_date);
 			
 			mHolder.sendView = view.findViewById(R.id.tl_conversation_detail_item_send);
 			mHolder.tvSendBody = (TextView) view.findViewById(R.id.tv_conversation_detail_item_send_body);
+			mHolder.tvSendBody.setOnLongClickListener(ConversationDetailActivity.this);
 			mHolder.tvSendDate = (TextView) view.findViewById(R.id.tv_conversation_detail_item_send_date);
 			
 			view.setTag(mHolder);
@@ -312,6 +337,74 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 	public void onPostNotify(int token, Object cookie, Cursor cursor) {
 		// TODO Auto-generated method stub
 		mListView.setSelection(mListView.getCount());//默认显示在底部
+	}
+
+
+	@Override
+	public boolean onLongClick(View v) {
+		// TODO Auto-generated method stub
+		switch (v.getId()) {
+		case R.id.tv_conversation_detail_item_receive_body:
+			tvIsonLongClick=true;			
+			break;
+			
+		case R.id.tv_conversation_detail_item_send_body: 		
+			tvIsonLongClick=true;
+			break;
+
+		default:
+			break;
+		}
+		return false;
+	}
+	
+	/**
+	 * 对话框
+	 * 对单条短信的操作
+	 * 
+	 */
+	@SuppressLint("NewApi")
+	private void showOperatorDialog(final String _id) {
+		AlertDialog.Builder builder = new Builder(this);
+		builder.setItems(new String[]{"重发", "删除"}, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0) {
+					// 重发
+                    Log.i(TAG, "短信id为"+_id);
+				} else {
+                    //删除
+//					showDeleteGroupDialog(group_id);
+				}
+			}
+		});
+		
+		AlertDialog dialog=builder.create();
+		dialog.show();
+		
+		dialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				// TODO Auto-generated method stub
+				Log.i(TAG, "onDismiss");
+				tvIsonLongClick=false;
+			}
+		});
+	}
+
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> parent, View view,
+			int position, long id) {
+		// TODO Auto-generated method stub
+		if (tvIsonLongClick) {
+			Cursor cursor = (Cursor) mAdapter.getItem(position);
+			String _id = cursor.getString(cursor.getColumnIndex("_id"));
+			showOperatorDialog(_id);			
+		}
+		return true;
 	}
 
 }

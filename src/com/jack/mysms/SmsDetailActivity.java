@@ -117,7 +117,6 @@ public class SmsDetailActivity extends Activity {
 		ActionBar actionBar = getActionBar();
 		// 返回箭头
 		actionBar.setDisplayHomeAsUpEnabled(true);
-		actionBar.setDisplayShowHomeEnabled(false);
 		actionBar.setTitle("短信详情");
 	}
 }

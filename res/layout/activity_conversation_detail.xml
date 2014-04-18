@@ -11,8 +11,8 @@
         android:layout_weight="1"
         android:cacheColorHint="@android:color/transparent"
         android:divider="@null"
-        android:dividerHeight="0dip"
-        android:listSelector="@null" >
+        android:dividerHeight="0dip"  
+        android:listSelector="@android:color/transparent" >
     </ListView>
 
     <LinearLayout
@@ -21,7 +21,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal" >
         
-        <Button 
+        <ImageButton
+            android:background="@android:drawable/ic_btn_speak_now"
             android:id="@+id/btn_conversation_detail_voice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

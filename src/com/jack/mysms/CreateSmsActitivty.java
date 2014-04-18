@@ -154,7 +154,6 @@ public class CreateSmsActitivty extends Activity implements OnClickListener{
 		ActionBar actionBar = getActionBar();
 		//返回箭头
 		actionBar.setDisplayHomeAsUpEnabled(true);
-		actionBar.setDisplayShowHomeEnabled(false);
 		actionBar.setTitle("新建信息");
 		
 	}
