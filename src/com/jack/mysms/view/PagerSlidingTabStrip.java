@@ -19,16 +19,15 @@ package com.jack.mysms.view;
 import java.util.Locale;
 
 
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Paint.Style;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.NotificationCompat.Style;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.AttributeSet;
@@ -159,7 +158,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		rectPaint = new Paint();
 		rectPaint.setAntiAlias(true);
-		rectPaint.setStyle(Style.FILL);
+//		rectPaint.setStyle(Style.FILL);
 
 		dividerPaint = new Paint();
 		dividerPaint.setAntiAlias(true);

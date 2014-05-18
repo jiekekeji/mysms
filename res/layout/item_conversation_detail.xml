@@ -14,7 +14,7 @@
 
         <TableRow android:layout_height="wrap_content" >
 
-            <TextView
+            <com.jack.mysms.view.MyTextView
                 android:id="@+id/tv_conversation_detail_item_receive_body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -58,7 +58,7 @@
                 android:textColor="@android:color/darker_gray"
                 android:textSize="10sp" />
 
-            <TextView
+            <com.jack.mysms.view.MyTextView
                 android:id="@+id/tv_conversation_detail_item_send_body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

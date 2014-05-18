@@ -20,8 +20,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
@@ -40,8 +38,9 @@ import com.jack.mssms.utils.MyAsyncQuery;
 import com.jack.mssms.utils.MyAsyncQuery.OnQueryNotifyCompleteListener;
 import com.jack.mssms.utils.Sms;
 import com.jack.mssms.utils.Utils;
+import com.jack.mysms.view.MyTextView;
 
-public class ConversationDetailActivity extends Activity implements OnQueryNotifyCompleteListener,OnClickListener, OnLongClickListener, OnItemLongClickListener{
+public class ConversationDetailActivity extends Activity implements OnQueryNotifyCompleteListener,OnClickListener{
 
 	private static final String TAG = "ConversationDetailActivity";
 	private int thread_id;
@@ -201,7 +200,7 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		mListView.setAdapter(mAdapter);
 		//设置item项的子控件能够获得焦点（默认为false，即默认item项的子空间是不能获得焦点的）
 		mListView.setItemsCanFocus(true);
-		mListView.setOnItemLongClickListener(this);
+
 	}
 	
 	/**
@@ -250,20 +249,37 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		}
 
 		@Override
-		public View newView(Context context, Cursor cursor, ViewGroup parent) {
+		public View newView(Context context, final Cursor cursor, ViewGroup parent) {
 			// TODO Auto-generated method stub
 			mHolder = new ConversationDetailHolderView();
 			View view = View.inflate(context, R.layout.item_conversation_detail, null);
 			mHolder.receiveView = view.findViewById(R.id.tl_conversation_detail_item_receive);
-			mHolder.tvReceiveBody = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_body);
-			mHolder.tvReceiveBody.setOnLongClickListener(ConversationDetailActivity.this);
-			mHolder.tvReceiveDate = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_date);
+			mHolder.tvReceiveBody = (MyTextView) view.findViewById(R.id.tv_conversation_detail_item_receive_body);
 			
+			mHolder.tvReceiveDate = (TextView) view.findViewById(R.id.tv_conversation_detail_item_receive_date);
+			mHolder.tvReceiveBody.setOnLongClickListener(new OnLongClickListener() {
+				
+				@Override
+				public boolean onLongClick(View v) {
+					// TODO Auto-generated method stub
+					showOperatorDialog(cursor.getPosition());
+					return false;
+				}
+			});
 			mHolder.sendView = view.findViewById(R.id.tl_conversation_detail_item_send);
-			mHolder.tvSendBody = (TextView) view.findViewById(R.id.tv_conversation_detail_item_send_body);
-			mHolder.tvSendBody.setOnLongClickListener(ConversationDetailActivity.this);
+			mHolder.tvSendBody = (MyTextView) view.findViewById(R.id.tv_conversation_detail_item_send_body);
+			
 			mHolder.tvSendDate = (TextView) view.findViewById(R.id.tv_conversation_detail_item_send_date);
 			
+			mHolder.tvSendBody.setOnLongClickListener(new OnLongClickListener() {
+				
+				@Override
+				public boolean onLongClick(View v) {
+					// TODO Auto-generated method stub
+					showOperatorDialog(cursor.getPosition());
+					return false;
+				}
+			});
 			view.setTag(mHolder);
 			return view;
 		}
@@ -314,11 +330,11 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 	
 	public class ConversationDetailHolderView {
 		public View receiveView;
-		public TextView tvReceiveBody;
+		public MyTextView tvReceiveBody;
 		public TextView tvReceiveDate;
 		
 		public View sendView;
-		public TextView tvSendBody;
+		public MyTextView tvSendBody;
 		public TextView tvSendDate;
 	}
     /**
@@ -338,25 +354,6 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 		// TODO Auto-generated method stub
 		mListView.setSelection(mListView.getCount());//默认显示在底部
 	}
-
-
-	@Override
-	public boolean onLongClick(View v) {
-		// TODO Auto-generated method stub
-		switch (v.getId()) {
-		case R.id.tv_conversation_detail_item_receive_body:
-			tvIsonLongClick=true;			
-			break;
-			
-		case R.id.tv_conversation_detail_item_send_body: 		
-			tvIsonLongClick=true;
-			break;
-
-		default:
-			break;
-		}
-		return false;
-	}
 	
 	/**
 	 * 对话框
@@ -364,7 +361,9 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 	 * 
 	 */
 	@SuppressLint("NewApi")
-	private void showOperatorDialog(final String _id) {
+	private void showOperatorDialog(int position) {
+		Cursor cursor = (Cursor) mAdapter.getItem(position);
+		final String _id = cursor.getString(cursor.getColumnIndex("_id"));
 		AlertDialog.Builder builder = new Builder(this);
 		builder.setItems(new String[]{"重发", "删除"}, new DialogInterface.OnClickListener() {
 			
@@ -392,19 +391,6 @@ public class ConversationDetailActivity extends Activity implements OnQueryNotif
 				tvIsonLongClick=false;
 			}
 		});
-	}
-
-
-	@Override
-	public boolean onItemLongClick(AdapterView<?> parent, View view,
-			int position, long id) {
-		// TODO Auto-generated method stub
-		if (tvIsonLongClick) {
-			Cursor cursor = (Cursor) mAdapter.getItem(position);
-			String _id = cursor.getString(cursor.getColumnIndex("_id"));
-			showOperatorDialog(_id);			
-		}
-		return true;
 	}
 
 }
